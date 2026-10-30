@@ -34,6 +34,25 @@ Option order is shuffled once per example. Examples sharing a 13-word n-gram wit
 dropped; examples over 8192 tokens are dropped, never truncated. The dataset IDs actually used (and any
 substitution, for example if ReClor is gated) are recorded in `processed/dataset_sources.json` in the dataset repo.
 
+## Try it
+
+The last section of the notebook loads the base and fine-tuned models from the Hub and prints each model's
+probability distribution for any state and options you type (`llm_as_jev/demo.py`). Example in Python:
+
+```python
+from llm_as_jev import demo
+demo.show(models, tok, "I lost my card", ["card arrival", "lost or stolen card", "exchange rate"])
+```
+
+## Scope of this reproduction
+
+Implemented: the prompt/answer interface with trie scoring, the tree-restricted likelihood with mass, out and
+position anchors (top-64 truncation, cached base statistics), Reason-9k construction with 13-gram decontamination,
+and the evaluation suite (accuracy, ECE, Brier, text-mode check) for Qwen3-0.6B only.
+Not done: the 4B model, JevBench, multiple seeds, and any numeric comparison against the paper's reported figures.
+The results below show the method's qualitative effect (much better calibration, large in-domain gain, small
+external accuracy gain) at this scale.
+
 ## Results
 
 <!-- RESULTS_START -->
