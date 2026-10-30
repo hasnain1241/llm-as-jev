@@ -1,0 +1,27 @@
+model: Qwen/Qwen3-0.6B
+seed: 20260922
+max_len: 8192
+per_set: 1000
+
+# optimisation (full fine-tune)
+lr: 5.0e-6
+weight_decay: 0.01
+grad_clip: 1.0
+global_batch: 32
+warmup_frac: 0.1
+final_lr_frac: 0.1
+epochs: 1
+lam: 1.0
+
+# checkpoints and safety
+drive_every: 50
+hf_push_every: 50
+projection_step: 10
+budget_units: 15
+approve_over_budget: false
+health_every: 20
+health_dev_size: 16
+health_max_drop: 0.5
+
+# evaluation
+text_mode_n: 50
