@@ -17,6 +17,8 @@ Single run, one seed, 0.6B model only.
 - The model is not a strong reasoner at this size: the base model is near chance on the JevBench hard tier, and both models are near chance on its yes/no items.
 - Text mode works: after the `Best answer: [` prefill, greedy generation parsed as a valid id in all 350 checked items, for both models.
 
+![Results: external benchmarks and JevBench public items](docs/results_card.png)
+
 ## How it works
 
 Prompt: `State: ... / Options: [1] ... [K] / Select one option...`, chat template with thinking disabled, then the prefill `Best answer: [`.

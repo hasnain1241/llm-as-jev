@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;padding:44px 52px;width:1096px;font-family:"Noto Sans",Arial,sans-serif;color:#1f2937;background:#fff}
+h1{font-size:34px;margin:0 0 6px} .sub{font-size:19px;color:#475467;margin-bottom:30px}
+h2{font-size:23px;margin:26px 0 10px}
+table{border-collapse:collapse;width:100%;font-size:21px;table-layout:fixed}
+th{background:#1f2937;color:#fff;padding:11px 14px;text-align:center} th.m,td.m{text-align:left;width:50%}
+td{padding:11px 14px;border-bottom:1px solid #d0d5dd;text-align:center}
+td.win{background:#e7f5ec;font-weight:700}
+.foot{margin-top:26px;font-size:15.5px;color:#475467;line-height:1.5}
+</style></head><body>
+<h1>LLM-as-Jev: Qwen3-0.6B full fine-tune</h1>
+<div class="sub">Reason-9k training, probability over numbered options. Green = better.</div>
+<h2>External benchmarks</h2><table><tr><th class="m">Metric</th><th>Training-free</th><th>Fine-tuned</th></tr><tr><td class="m">Accuracy, macro of 6 sets</td><td class="">0.553</td><td class="win">0.573</td></tr><tr><td class="m">ECE, macro of 6 sets</td><td class="">0.262</td><td class="win">0.118</td></tr><tr><td class="m">Brier, macro of 6 sets</td><td class="">0.652</td><td class="win">0.530</td></tr><tr><td class="m">Banking77 accuracy (77 options)</td><td class="">0.185</td><td class="win">0.603</td></tr><tr><td class="m">Banking77 ECE</td><td class="">0.460</td><td class="win">0.120</td></tr></table>
+<h2>JevBench public items (231)</h2><table><tr><th class="m">Metric</th><th>Base</th><th>Fine-tuned</th></tr><tr><td class="m">Overall accuracy (231 items)</td><td class="">0.541</td><td class="win">0.554</td></tr><tr><td class="m">Easy (48)</td><td class="">0.938</td><td class="win">0.979</td></tr><tr><td class="m">Standard (72)</td><td class="win">0.653</td><td class="">0.583</td></tr><tr><td class="m">Hard (111)</td><td class="">0.297</td><td class="win">0.351</td></tr><tr><td class="m">Prompts over 1500 tokens (37)</td><td class="">0.162</td><td class="win">0.270</td></tr><tr><td class="m">ECE (15 bins)</td><td class="">0.299</td><td class="win">0.170</td></tr><tr><td class="m">Brier</td><td class="">0.690</td><td class="win">0.569</td></tr></table>
+<div class="foot">Lower is better for ECE and Brier. Single run, one seed. JevBench numbers use the 231 public items and are not the official score.
+Accuracy differences of a few items are within noise; the calibration gain is the consistent effect.<br>github.com/hasnain1241/llm-as-jev</div>
+</body></html>
