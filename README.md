@@ -53,6 +53,19 @@ Not done: the 4B model, JevBench, multiple seeds, and any numeric comparison aga
 The results below show the method's qualitative effect (much better calibration, large in-domain gain, small
 external accuracy gain) at this scale.
 
+## JevBench public items
+
+Evaluation only: the 231 public items of JevBench v1.4.2.2 (easy 48, standard 72, hard 111) are scored with the same trie
+scorer and never used for training or checkpoint selection. Conversion (`llm_as_jev/jevbench.py`): the question's
+instructions are prepended to the item state, options keep the canonical `labels` order, and each option is written as
+`label: rubric description` (yes/no items use the true/false descriptions; score items use the level descriptions).
+This is not the official JevBench score, which also includes calibration, speed and cost axes and held-out items,
+so the numbers below do not compare to its leaderboard.
+
+<!-- JEVBENCH_START -->
+Not run yet. The notebook section "JevBench public items" produces this table.
+<!-- JEVBENCH_END -->
+
 ## Results
 
 <!-- RESULTS_START -->
