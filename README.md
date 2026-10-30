@@ -63,7 +63,26 @@ This is not the official JevBench score, which also includes calibration, speed 
 so the numbers below do not compare to its leaderboard.
 
 <!-- JEVBENCH_START -->
-Not run yet. The notebook section "JevBench public items" produces this table.
+| Metric | Base | Fine-tuned |
+|---|---|---|
+| Overall accuracy (231 items) | 0.541 | 0.554 |
+| Easy accuracy (48) | 0.938 | 0.979 |
+| Standard accuracy (72) | 0.653 | 0.583 |
+| Hard accuracy (111) | 0.297 | 0.351 |
+| Accuracy, prompts over 1500 tokens (37) | 0.162 | 0.270 |
+| ECE (15 bins) | 0.299 | 0.170 |
+| Brier | 0.690 | 0.569 |
+| Yes predictions on yes/no items (74) | 37 | 44 |
+| Chance accuracy (uniform guess) | 0.318 | 0.318 |
+
+Benchmark commit `fcc6927` (tag v1.4.2.2). Gold "yes" count on the 74 yes/no items is 35. No Reason-9k training item shares a
+13-word n-gram with these items.
+
+How to read it: with 231 items the sampling error on accuracy is about 3 points, so the accuracy differences (3 more items
+correct overall, 5 fewer on the standard tier, 6 more on the hard tier) are not distinguishable from noise. The calibration
+gain (ECE 0.30 to 0.17, Brier 0.69 to 0.57) is the consistent effect, and matches the external-set results. Both models are
+near chance on the yes/no items (57% and 55%), and the fine-tuned model leans toward "yes" (44 predictions against 35 gold).
+The hard tier is near chance for the base model, so a 0.6B model is not solving these items.
 <!-- JEVBENCH_END -->
 
 ## Results
