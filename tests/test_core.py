@@ -174,9 +174,10 @@ def test_calibration_metrics():
 def test_token_never_printed(capsys, monkeypatch):
     from llm_as_jev import auth
 
-    monkeypatch.setenv("my_hf_token", "hf_FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE12")
+    fake = "hf_" + "FAKE" * 9  # built at runtime so the scanner below never matches this file
+    monkeypatch.setenv("my_hf_token", fake)
     tok_val = auth.get_hf_token()
-    assert tok_val.startswith("hf_FAKE")
+    assert tok_val == fake
     captured = capsys.readouterr()
     assert "FAKEFAKE" not in captured.out + captured.err
 
