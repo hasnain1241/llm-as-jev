@@ -7,6 +7,16 @@ A causal LLM becomes a decision model that outputs a probability distribution ov
 - Processed data, reference-stat caches, eval results: https://huggingface.co/datasets/Hasnain1241/llm-as-jev-dataset
 - Checkpoints and final model: https://huggingface.co/Hasnain1241/llm-as-jev
 
+## Summary of findings
+
+Single run, one seed, 0.6B model only.
+
+- Calibration improved clearly and consistently. On the six external sets macro ECE fell from 0.262 to 0.118 and Brier from 0.652 to 0.530. On the 231 public JevBench items ECE fell from 0.299 to 0.170 and Brier from 0.690 to 0.569.
+- In-domain intent classification improved a lot: Banking77 accuracy 0.185 to 0.603 (77 options, not in the training mix).
+- External accuracy changed little (macro 0.553 to 0.573). JevBench accuracy moved by a few items either way (0.541 to 0.554), which is within sampling noise.
+- The model is not a strong reasoner at this size: the base model is near chance on the JevBench hard tier, and both models are near chance on its yes/no items.
+- Text mode works: after the `Best answer: [` prefill, greedy generation parsed as a valid id in all 350 checked items, for both models.
+
 ## How it works
 
 Prompt: `State: ... / Options: [1] ... [K] / Select one option...`, chat template with thinking disabled, then the prefill `Best answer: [`.
@@ -18,40 +28,52 @@ using top-64 truncation plus a tail bucket. The base statistics are computed onc
 training holds one model only. Off-path anchor nodes are evaluated as extra rows over the prompt
 (plain sequences, no custom attention masks), so training costs about 4x the tokens of a single pass.
 
-## Run (Colab)
-
-Open `notebooks/colab_run.ipynb` and run top to bottom. Set the Colab secret `my_hf_token`.
-Stages: 1 smoke tests, 2 data + training-free baseline, 3 reference cache, 4 fine-tune, 5 eval + push.
-Each stage checks the HF repos first and skips or resumes. Training saves to Drive (exact resume) and
-pushes `checkpoint-latest` to the model repo (weights only; optimizer moments reset if resumed from HF).
-Compute-unit figures in the notebook are rough estimates from assumed per-GPU rates.
+Training: AdamW, lr 5e-6 with 10% warmup and linear decay to 10%, weight decay 0.01, grad clip 1.0, global batch 32
+(gradient accumulation), gradient checkpointing, fp32 master weights with bf16 (A100/L4) or fp16 (T4) autocast, seed 20260922.
+A health check halts training if the root legal log-mass drops more than 0.5 nats from the base model.
 
 ## Data (Reason-9k)
 
 1,000 examples from each of: CLINC150 (plus, 151 options), MASSIVE en-US, Bitext customer support,
 ReClor, LogiQA 2.0, CosmosQA (about 16% "none of the above" gold), PIQA, aNLI, ProofWriter.
 Option order is shuffled once per example. Examples sharing a 13-word n-gram with any eval item are
-dropped; examples over 8192 tokens are dropped, never truncated. The dataset IDs actually used (and any
-substitution, for example if ReClor is gated) are recorded in `processed/dataset_sources.json` in the dataset repo.
+dropped; examples over 8192 tokens are dropped, never truncated.
 
-## Try it
+Sources actually used (from `processed/dataset_sources.json`, no substitutions were needed): `clinc/clinc_oos` (plus),
+`AmazonScience/massive` (en-US), `bitext/Bitext-customer-support-llm-chatbot-training-dataset`, `metaeval/reclor`,
+`baber/logiqa2`, `allenai/cosmos_qa`, `ybisk/piqa`, `allenai/art`, `tasksource/proofwriter`.
 
-The last section of the notebook loads the base and fine-tuned models from the Hub and prints each model's
-probability distribution for any state and options you type (`llm_as_jev/demo.py`). Example in Python:
+## Results
 
-```python
-from llm_as_jev import demo
-demo.show(models, tok, "I lost my card", ["card arrival", "lost or stolen card", "exchange rate"])
-```
+External evaluation: BoolQ 500, MMLU 1200, MMLU-Pro 800, ARC-C 600, WinoGrande 500, SciQ 400 (seeded subsamples,
+all options kept), plus Banking77 test (3,080). ECE uses 15 bins and no temperature scaling.
 
-## Scope of this reproduction
+<!-- RESULTS_START -->
+| Metric | Training-free | Fine-tuned |
+|---|---|---|
+| External macro accuracy (6 sets) | 0.5531 | 0.5729 |
+| External macro ECE | 0.2624 | 0.1178 |
+| External macro Brier | 0.6523 | 0.5303 |
+| Banking77 accuracy | 0.1847 | 0.6026 |
+| Banking77 ECE | 0.4597 | 0.1201 |
+| Text-mode parse failures | 0 | 0 |
+| Text-mode samples | 350 | 350 |
+<!-- RESULTS_END -->
 
-Implemented: the prompt/answer interface with trie scoring, the tree-restricted likelihood with mass, out and
-position anchors (top-64 truncation, cached base statistics), Reason-9k construction with 13-gram decontamination,
-and the evaluation suite (accuracy, ECE, Brier, text-mode check) for Qwen3-0.6B only.
-Not done: the 4B model, JevBench, multiple seeds, and any numeric comparison against the paper's reported figures.
-The results below show the method's qualitative effect (much better calibration, large in-domain gain, small
-external accuracy gain) at this scale.
+Per set (accuracy, training-free to fine-tuned):
+
+| Set | Accuracy | ECE |
+|---|---|---|
+| BoolQ | 0.692 to 0.732 | 0.171 to 0.081 |
+| MMLU | 0.473 to 0.485 | 0.315 to 0.085 |
+| MMLU-Pro | 0.219 to 0.208 | 0.432 to 0.232 |
+| ARC-C | 0.538 to 0.552 | 0.317 to 0.106 |
+| WinoGrande | 0.472 to 0.516 | 0.295 to 0.161 |
+| SciQ | 0.925 to 0.945 | 0.045 to 0.043 |
+| Banking77 | 0.185 to 0.603 | 0.460 to 0.120 |
+
+The MMLU-Pro change is within sampling noise for n = 800. The text-mode check generated 32 tokens after the prefill for
+50 items per set; the generated id matched the scored argmax in 340 of 350 cases (training-free) and 338 of 350 (fine-tuned).
 
 ## JevBench public items
 
@@ -85,20 +107,55 @@ near chance on the yes/no items (57% and 55%), and the fine-tuned model leans to
 The hard tier is near chance for the base model, so a 0.6B model is not solving these items.
 <!-- JEVBENCH_END -->
 
-## Results
+## Known limitations
 
-<!-- RESULTS_START -->
-| Metric | Training-free | Fine-tuned |
-|---|---|---|
-| External macro accuracy (6 sets) | 0.5531 | 0.5729 |
-| External macro ECE | 0.2624 | 0.1178 |
-| External macro Brier | 0.6523 | 0.5303 |
-| Banking77 accuracy | 0.1847 | 0.6026 |
-| Banking77 ECE | 0.4597 | 0.1201 |
-| Text-mode parse failures | 0 | 0 |
-| Text-mode samples | 350 | 350 |
+- One seed, one run, no confidence intervals. Small accuracy differences should not be read as real.
+- Only Qwen3-0.6B. The 4B model from the paper setting was not run, and the numbers were not compared against the paper's reported figures.
+- Hand-tried examples (not a measured result) showed the fine-tuned model answering "Unknown" on short logic questions where the
+  premises settle the answer, for example "Anne is kind. Kind people are happy. Is Anne happy?". The cause is not confirmed. It may
+  be a prior from the ProofWriter part of the training mix, and the label distribution of that slice has not been checked.
+- On JevBench the fine-tuned model leans toward "yes" on yes/no items (44 predictions against 35 gold yes).
+- The JevBench conversion (label plus rubric description per option, instructions prepended) is my design choice and affects the scores.
+- Option-order sensitivity was tried on a single question only (no flips). It has not been measured at scale.
 
-External sets: BoolQ 500, MMLU 1200, MMLU-Pro 800, ARC-C 600, WinoGrande 500, SciQ 400 (seeded subsamples).
-Single run, one seed. Per-set numbers are in `results/` of the dataset repo. MMLU-Pro moved from 0.219 to 0.208,
-which is within sampling noise for n = 800. Dataset sources used: ReClor came from `metaeval/reclor` (no substitution needed).
-<!-- RESULTS_END -->
+## Run (Colab)
+
+Open `notebooks/colab_run.ipynb` and run top to bottom. Set the Colab secret `my_hf_token`. A GPU is required
+(L4 is a good default; A100 is faster; T4 works with fp16).
+Stages: 1 smoke tests, 2 data + training-free baseline, 3 reference cache, 4 fine-tune, 5 eval + push.
+Then the optional sections: demo (type your own state and options), JevBench public items, and a final test run.
+Each stage checks the HF repos first and skips or resumes. Training saves to Drive (exact resume) and
+pushes `checkpoint-latest` to the model repo (weights only; optimizer moments reset if resumed from HF).
+After 10 steps training prints a projected compute-unit total and stops if it exceeds 15.
+Compute-unit figures in the notebook are rough estimates from assumed per-GPU rates.
+Stage 5 edits `README.md` inside the Colab clone only; if a later `git pull` complains, run `git checkout -- README.md` first.
+
+## Try it
+
+```python
+from llm_as_jev import demo
+demo.show(models, tok, "I lost my card", ["card arrival", "lost or stolen card", "exchange rate"])
+demo.show(models, tok, query, banking77_labels, top=5)   # many options: show the top 5
+```
+
+`models` is a dict of name to model (base and fine-tuned, loaded from the Hub); the notebook's demo section sets it up.
+
+## Repo layout
+
+| Path | Purpose |
+|---|---|
+| `llm_as_jev/prompt.py` | prompt template, suffix trie, candidate suffix tokenization |
+| `llm_as_jev/scoring.py` | training-free scoring (KV cache, parallel suffixes), text-mode generation |
+| `llm_as_jev/loss.py` | tree loss, mass/out/position anchors, top-64 reference stats |
+| `llm_as_jev/train.py` | reference cache build, training loop, checkpoints, budget and health checks |
+| `llm_as_jev/data.py` | Reason-9k and eval-set builders, 13-gram decontamination |
+| `llm_as_jev/eval.py` | accuracy, ECE, Brier, text-mode check |
+| `llm_as_jev/jevbench.py` | JevBench public-item converter and evaluation |
+| `llm_as_jev/hub.py`, `auth.py` | Hugging Face pushes and pulls, token handling (never printed) |
+| `llm_as_jev/demo.py` | interactive distributions for base vs fine-tuned |
+| `configs/qwen3_0p6b.yaml` | all hyperparameters |
+| `tests/` | trie, scoring vs naive, loss, token safety, JevBench converter |
+| `notebooks/colab_run.ipynb` | the full pipeline |
+
+Artifacts in the dataset repo: `processed/reason9k.jsonl`, `processed/eval_sets.json`, `processed/dataset_sources.json`,
+`cache/ref_stats_top64.pt`, `results/baseline_training_free.json`, `results/finetuned.json`, `results/jevbench.json`.
