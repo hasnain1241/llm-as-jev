@@ -107,14 +107,33 @@ near chance on the yes/no items (57% and 55%), and the fine-tuned model leans to
 The hard tier is near chance for the base model, so a 0.6B model is not solving these items.
 <!-- JEVBENCH_END -->
 
+## Comparison with the paper (JevBench public items)
+
+Paper figures were supplied by the repo owner and have not been independently verified here. I have not confirmed
+the paper's model size or exact protocol for these columns, so check they match before reading this as like for like.
+"Yours" is this repo (Qwen3-0.6B, one run, one seed).
+
+| Metric | Paper base | Yours base | Paper FT (Reason-9k) | Yours FT |
+|---|---|---|---|---|
+| Overall accuracy | 56.7% | 54.1% | 55.0% | 55.4% |
+| Hard (of 111) | 37 (33.3%) | 33 (29.7%) | 36 (32.4%) | 39 (35.1%) |
+| Long items correct (of 37) | 7 | 6 | 9 | 10 |
+| ECE | 0.278 | 0.299 | 0.118 | 0.170 |
+| "Yes" predictions (of 74 yes/no items) | 34 | 37 | 41 | 44 |
+
+What lines up: ECE falls after fine-tuning in both (paper 0.278 to 0.118, here 0.299 to 0.170), long-item correct count
+rises (7 to 9, 6 to 10), and "yes" predictions rise by 7 in both (34 to 41, 37 to 44). What differs: the ECE reduction here is
+smaller, and overall accuracy fell slightly in the paper (56.7% to 55.0%) but rose slightly here (54.1% to 55.4%). With 231
+items, differences of a few items are within noise, so the accuracy and hard-tier gaps should not be read as real differences.
+
 ## Known limitations
 
 - One seed, one run, no confidence intervals. Small accuracy differences should not be read as real.
-- Only Qwen3-0.6B. The 4B model from the paper setting was not run, and the numbers were not compared against the paper's reported figures.
+- Only Qwen3-0.6B. The 4B model was not run. The paper comparison above uses figures supplied by the repo owner and was not independently verified.
 - Hand-tried examples (not a measured result) showed the fine-tuned model answering "Unknown" on short logic questions where the
   premises settle the answer, for example "Anne is kind. Kind people are happy. Is Anne happy?". The cause is not confirmed. It may
   be a prior from the ProofWriter part of the training mix, and the label distribution of that slice has not been checked.
-- On JevBench the fine-tuned model leans toward "yes" on yes/no items (44 predictions against 35 gold yes).
+- On JevBench the fine-tuned model leans toward "yes" on yes/no items (44 predictions against 35 gold yes). The paper's table shows the same direction (34 to 41).
 - The JevBench conversion (label plus rubric description per option, instructions prepended) is my design choice and affects the scores.
 - Option-order sensitivity was tried on a single question only (no flips). It has not been measured at scale.
 
