@@ -37,5 +37,17 @@ substitution, for example if ReClor is gated) are recorded in `processed/dataset
 ## Results
 
 <!-- RESULTS_START -->
-Not run yet. Stage 5 of the notebook fills this table.
+| Metric | Training-free | Fine-tuned |
+|---|---|---|
+| External macro accuracy (6 sets) | 0.5531 | 0.5729 |
+| External macro ECE | 0.2624 | 0.1178 |
+| External macro Brier | 0.6523 | 0.5303 |
+| Banking77 accuracy | 0.1847 | 0.6026 |
+| Banking77 ECE | 0.4597 | 0.1201 |
+| Text-mode parse failures | 0 | 0 |
+| Text-mode samples | 350 | 350 |
+
+External sets: BoolQ 500, MMLU 1200, MMLU-Pro 800, ARC-C 600, WinoGrande 500, SciQ 400 (seeded subsamples).
+Single run, one seed. Per-set numbers are in `results/` of the dataset repo. MMLU-Pro moved from 0.219 to 0.208,
+which is within sampling noise for n = 800. Dataset sources used: ReClor came from `metaeval/reclor` (no substitution needed).
 <!-- RESULTS_END -->
