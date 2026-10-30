@@ -109,8 +109,9 @@ The hard tier is near chance for the base model, so a 0.6B model is not solving 
 
 ## Comparison with the paper (JevBench public items)
 
-Paper figures were supplied by the repo owner and have not been independently verified here. I have not confirmed
-the paper's model size or exact protocol for these columns, so check they match before reading this as like for like.
+Paper figures are from the paper's Table 8 (Qwen3-0.6B, Reason-9k). Only the trend is comparable: this repo is a single run
+with one seed, and its JevBench prompt conversion (label plus rubric description per option, instructions prepended) differs
+from the paper's, so exact numbers should not be expected to match.
 "Yours" is this repo (Qwen3-0.6B, one run, one seed).
 
 | Metric | Paper base | Yours base | Paper FT (Reason-9k) | Yours FT |
@@ -129,7 +130,7 @@ items, differences of a few items are within noise, so the accuracy and hard-tie
 ## Known limitations
 
 - One seed, one run, no confidence intervals. Small accuracy differences should not be read as real.
-- Only Qwen3-0.6B. The 4B model was not run. The paper comparison above uses figures supplied by the repo owner and was not independently verified.
+- Only Qwen3-0.6B. The 4B model was not run. The paper comparison above uses Table 8 of the paper (Qwen3-0.6B, Reason-9k); this repo is a single run with a different prompt conversion, so only the trend is comparable.
 - Hand-tried examples (not a measured result) showed the fine-tuned model answering "Unknown" on short logic questions where the
   premises settle the answer, for example "Anne is kind. Kind people are happy. Is Anne happy?". The cause is not confirmed. It may
   be a prior from the ProofWriter part of the training mix, and the label distribution of that slice has not been checked.
