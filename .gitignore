@@ -1,0 +1,32 @@
+# secrets
+.env
+*.env
+.env.*
+*token*
+*secret*
+*.key
+secrets/
+credentials*.json
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+.pytest_cache/
+
+# artifacts (large files go to HF, not git)
+checkpoints/
+outputs/
+runs/
+wandb/
+data/
+cache/
+*.pt
+*.bin
+*.safetensors
+*.parquet
+*.jsonl
+
+.DS_Store
