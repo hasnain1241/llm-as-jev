@@ -12,14 +12,15 @@ def predict(model, tok, state, options):
     return probs_from_scores(score_candidates(model, enc)).cpu().tolist()
 
 
-def show(models, tok, state, options, width=30):
-    """models: dict name -> model. Prints one bar chart per model."""
+def show(models, tok, state, options, width=30, top=None):
+    """models: dict name -> model. Prints one bar chart per model (top-N options if top is set)."""
     print(f"State: {state}")
     for name, m in models.items():
         p = predict(m, tok, state, options)
         best = max(range(len(p)), key=p.__getitem__)
         print(f"\n{name}")
-        for i, (o, x) in enumerate(zip(options, p), 1):
+        order = sorted(range(len(p)), key=lambda j: -p[j])[: top or len(p)]
+        for i, (o, x) in ((j + 1, (options[j], p[j])) for j in order):
             bar = "#" * round(x * width)
             print(f"  [{i}] {x:6.1%} {bar:<{width}} {o}{'  <- best' if i - 1 == best else ''}")
 
